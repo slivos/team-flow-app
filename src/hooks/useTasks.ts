@@ -6,9 +6,16 @@ import type { Card, Priority, Tag, Assignee } from "../types";
 export const taskKeys = {
   all: ["tasks"] as const,
   lists: () => [...taskKeys.all, "list"] as const,
-  list: (filters: Record<string, unknown>) => [...taskKeys.lists(), filters] as const,
+  list: (filters: Record<string, unknown>) =>
+    [...taskKeys.lists(), filters] as const,
   details: () => [...taskKeys.all, "detail"] as const,
   detail: (id: string) => [...taskKeys.details(), id] as const,
+};
+
+// Zdieľaný typ pre mutation kontexty
+type TaskMutationContext = {
+  previousTasks?: Card[];
+  previousTask?: Card;
 };
 
 // GET - načítanie všetkých taskov
@@ -49,7 +56,9 @@ export function useCreateTask() {
       await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
 
       // Snapshot predchádzajúceho stavu
-      const previousTasks = queryClient.getQueryData(taskKeys.lists());
+      const previousTasks = queryClient.getQueryData(
+        taskKeys.lists(),
+      ) as Card[];
 
       // Optimistic update
       queryClient.setQueryData(taskKeys.lists(), (old: Card[] = []) => [
@@ -65,7 +74,7 @@ export function useCreateTask() {
     },
 
     // Revert pri chybe
-    onError: (err, variables, context) => {
+    onError: (_error, _variables, context?: TaskMutationContext) => {
       queryClient.setQueryData(taskKeys.lists(), context?.previousTasks);
     },
 
@@ -88,30 +97,39 @@ export function useUpdateTask() {
       await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
       await queryClient.cancelQueries({ queryKey: taskKeys.detail(id) });
 
-      const previousTasks = queryClient.getQueryData(taskKeys.lists());
-      const previousTask = queryClient.getQueryData(taskKeys.detail(id));
+      const previousTasks = queryClient.getQueryData(
+        taskKeys.lists(),
+      ) as Card[];
+      const previousTask = queryClient.getQueryData(
+        taskKeys.detail(id),
+      ) as Card;
 
       // Optimistic update v zozname
       queryClient.setQueryData(taskKeys.lists(), (old: Card[] = []) =>
-        old.map((task) => (task.id === id ? { ...task, ...data } : task))
+        old.map((task) => (task.id === id ? { ...task, ...data } : task)),
       );
 
       // Optimistic update detailu
       queryClient.setQueryData(taskKeys.detail(id), (old: Card | undefined) =>
-        old ? { ...old, ...data } : old
+        old ? { ...old, ...data } : old,
       );
 
       return { previousTasks, previousTask };
     },
 
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context?: TaskMutationContext) => {
       queryClient.setQueryData(taskKeys.lists(), context?.previousTasks);
-      queryClient.setQueryData(taskKeys.detail(variables.id), context?.previousTask);
+      queryClient.setQueryData(
+        taskKeys.detail(_variables.id),
+        context?.previousTask,
+      );
     },
 
-    onSettled: (data, error, variables) => {
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: taskKeys.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: taskKeys.detail(variables.id),
+      });
     },
   });
 }
@@ -126,17 +144,19 @@ export function useDeleteTask() {
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
 
-      const previousTasks = queryClient.getQueryData(taskKeys.lists());
+      const previousTasks = queryClient.getQueryData(
+        taskKeys.lists(),
+      ) as Card[];
 
       // Optimistic update - odstránenie tasku
       queryClient.setQueryData(taskKeys.lists(), (old: Card[] = []) =>
-        old.filter((task) => task.id !== id)
+        old.filter((task) => task.id !== id),
       );
 
       return { previousTasks };
     },
 
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context?: TaskMutationContext) => {
       queryClient.setQueryData(taskKeys.lists(), context?.previousTasks);
     },
 
@@ -145,13 +165,3 @@ export function useDeleteTask() {
     },
   });
 }
-
-// Spôsob použitia v komponente:
-// const { data: tasks, isLoading, error } = useTasks();
-// const createTask = useCreateTask();
-// const updateTask = useUpdateTask();
-// const deleteTask = useDeleteTask();
-//
-// createTask.mutate({ title: "Nový task", columnId: "todo" });
-// updateTask.mutate({ id: "123", data: { title: "Updated" } });
-// deleteTask.mutate("123");
