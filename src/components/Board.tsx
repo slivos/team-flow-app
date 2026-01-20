@@ -176,12 +176,13 @@ export function Board() {
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
+    <div className="flex-grow">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
       {/* Filter & Sort Controls */}
       <div className="bg-white border-b border-slate-200 px-4 sm:px-8 py-4">
         <div className="flex flex-wrap gap-3 sm:gap-4 items-center">
@@ -421,6 +422,7 @@ export function Board() {
           taskTitle={deletingCard.title}
         />
       )}
-    </DndContext>
+      </DndContext>
+    </div>
   );
 }

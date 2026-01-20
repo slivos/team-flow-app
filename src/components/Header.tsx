@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { api } from "../lib/api";
 import { useUserStore } from "../store/userStore";
-import { IconSettings, IconUser } from "@tabler/icons-react";
+import { IconSettings, IconUser, IconBrandGithub } from "@tabler/icons-react";
 
 const CURRENT_USER_ID = "1"; // Hardcoded for now, should come from auth
 
@@ -74,6 +74,15 @@ export function Header({ onOpenSettings }: HeaderProps) {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <a
+            href="https://github.com/slivos/team-flow-app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:bg-slate-100 rounded-full p-2 transition-colors"
+            aria-label="GitHub repository"
+          >
+            <IconBrandGithub className="w-5 h-5 text-slate-700" />
+          </a>
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
