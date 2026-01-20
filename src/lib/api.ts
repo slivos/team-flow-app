@@ -1,4 +1,4 @@
-import type { Card, Priority, Tag, Assignee, UserProfile, UserSettings } from "../types";
+import type { Card, UserProfile } from "../types";
 
 const API_BASE_URL = "https://696e31a4d7bacd2dd71613c3.mockapi.io/api/v1";
 
@@ -56,31 +56,16 @@ export const api = {
   },
 
   // PUT - update user profile
-  updateUserProfile: async (userId: string, data: Partial<UserProfile>): Promise<UserProfile> => {
+  updateUserProfile: async (
+    userId: string,
+    data: Partial<UserProfile>,
+  ): Promise<UserProfile> => {
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error("Failed to update user profile");
-    return response.json();
-  },
-
-  // GET - načítanie user settings
-  getUserSettings: async (userId: string): Promise<UserSettings> => {
-    const response = await fetch(`${API_BASE_URL}/usersettings/${userId}`);
-    if (!response.ok) throw new Error("Failed to fetch user settings");
-    return response.json();
-  },
-
-  // PUT - update user settings
-  updateUserSettings: async (userId: string, data: Partial<UserSettings>): Promise<UserSettings> => {
-    const response = await fetch(`${API_BASE_URL}/usersettings/${userId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error("Failed to update user settings");
     return response.json();
   },
 };
